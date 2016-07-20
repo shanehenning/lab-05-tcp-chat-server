@@ -15,17 +15,31 @@ var ClientPool = function(){
     this.pool[socket.id] = socket.userName;
   }.bind(this));
 
+  this.ee.on('data', function(data, socket){
+    if(data.toString() === 'END\r\n'){
+      socket.end();
+      delete clients.pool[socket.id];
+    } else {
+      // console.log('clients.pool[socket.id] = ' + clients.pool[socket.id]);
+      clients.ee.emit('broadcast', data, socket);
+    }
+  });
+
+  this.ee.on('error', function(err){
+    if(err) console.log(err);
+  });
+
   this.ee.on('broadcast', function(data, socket){
-    Object.keys(this.pool).forEach(function(item){
-      clients[item].write(socket);
+    Object.keys(this.pool).forEach(function(client){
+      this.pool[client].write(data.toString());
+      // (this.pool[client] + ' msg: ' + data.toString());
     });
-    // console.log(this.pool);
-
-
-    // for (var client in this.pool){
-    //   console.log(this.pool[client] + ' msg: ' + data.toString());
-    // }
   }.bind(this));
+
+  this.ee.on('close', function(socket){
+    console.log(this.pool[socket.id] + ' disconnected');
+    delete this.pool[socket.id];
+  });
 
 };
 
@@ -37,25 +51,6 @@ var clients = new ClientPool();
 
 let server = net.createServer(function(socket){
   clients.ee.emit('register', socket);
-
-  socket.on('data', function(data){
-    if(data.toString() === 'END\r\n'){
-      socket.end();
-      delete clients.pool[socket.id];
-    } else {
-      // console.log('clients.pool[socket.id] = ' + clients.pool[socket.id]);
-      clients.ee.emit('broadcast', data, socket);
-    }
-  });
-
-  socket.on('error', function(err){
-    if(err) console.log(err);
-  });
-
-  socket.on('close', function(){
-    console.log(clients.pool[socket.id] + ' disconnected');
-    delete clients.pool[socket.id];
-  });
 });
 
 server.listen(3000, function(){
