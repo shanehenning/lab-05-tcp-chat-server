@@ -4,4 +4,3 @@ Using Mocha, we test our chat server to determine several agendas:
 
 - When a client types a message, other clients should see the message
 - Each message sent should prepend the username before the message
-- Upon exiting the chat server, other clients should see that the user has disconnected
