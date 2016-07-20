@@ -12,23 +12,17 @@ var ClientPool = function(){
     socket.pipe(process.stdout);
     socket.id = socket.remotePort;
     socket.userName = 'user-' + socket.id;
-    this.pool[socket.id] = socket.userName;
+    this.pool[socket] = socket.userName;
   }.bind(this));
 
   this.ee.on('broadcast', function(data, socket){
     Object.keys(this.pool).forEach(function(item){
       this.pool[item].write(data.toString());
-    });
-    // console.log(this.pool);
-
-
-    // for (var client in this.pool){
-    //   console.log(this.pool[client] + ' msg: ' + data.toString());
-    // }
+    }.bind(this));
   }.bind(this));
-
 };
 
+//   console.log(this.pool[client] + ' msg: ' + data.toString());
 
 
 
